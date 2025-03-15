@@ -1,35 +1,62 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState, useEffect } from 'react';
+import { ProjectApi, Project } from './api/ProjectApi';
+import { v4 as uuidv4 } from 'uuid';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App: React.FC = () => {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+
+  useEffect(() => {
+    setProjects(ProjectApi.getAll());
+  }, []);
+
+  const handleAddProject = () => {
+    const newProject: Project = {
+      id: uuidv4(),
+      name,
+      description,
+    };
+    ProjectApi.create(newProject);
+    setProjects(ProjectApi.getAll());
+    setName('');
+    setDescription('');
+  };
+
+  const handleDeleteProject = (id: string) => {
+    ProjectApi.delete(id);
+    setProjects(ProjectApi.getAll());
+  };
 
   return (
-    <>
+    <div className="container">
+      <h1>ManagMe - Project Management</h1>
       <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <input
+          type="text"
+          placeholder="Project Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Project Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <button onClick={handleAddProject}>Add Project</button>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+      <div>
+        {projects.map((project) => (
+          <div key={project.id} className="project">
+            <h2>{project.name}</h2>
+            <p>{project.description}</p>
+            <button onClick={() => handleDeleteProject(project.id)}>Delete</button>
+          </div>
+        ))}
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    </div>
+  );
+};
 
-export default App
+export default App;
